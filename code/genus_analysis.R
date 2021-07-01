@@ -2,6 +2,8 @@ library(tidyverse)
 library(broom)
 library(ggtext)
 
+set.seed(19760620)
+
 shared <- read_tsv("raw_data/baxter.subsample.shared",
          col_types = cols(Group = col_character(),
                           .default = col_double())) %>%
@@ -54,6 +56,7 @@ composite %>%
                                 "Unclassified<br>*\\1*"),
          srn = factor(srn, levels = c(T, F))) %>%
   ggplot(aes(x=rel_abund, y=taxonomy, color=srn, fill=srn)) +
+  geom_vline(xintercept = 100/10530, size=0.5, color="gray") +
   geom_jitter(position = position_jitterdodge(dodge.width = 0.8,
                                               jitter.width = 0.5),
               shape=21) +
