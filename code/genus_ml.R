@@ -8,7 +8,10 @@ srn_genus_data <- composite %>%
   mutate(srn = if_else(srn, "srn", "healthy")) %>%
   select(srn, everything())
 
-srn_genus_results <- run_ml(srn_genus_data,
+srn_genus_preprocess <- preprocess_data(srn_genus_data,
+                                        outcome_colname = "srn")$dat_transformed
+
+srn_genus_results <- run_ml(srn_genus_preprocess,
        method="glmnet",
        outcome_colname = "srn",
        kfold = 5,
