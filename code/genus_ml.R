@@ -1,5 +1,10 @@
 source("code/genus_process.R")
 library(mikropml)
+library(furrr)
+
+#plan("sequential") # serial processing, not parallel!
+#plan("multicore")  # doesnt work with windows or Rstudio
+plan("multisession")
 
 srn_genus_data <- composite %>%
   select(group, taxonomy, rel_abund, srn) %>%
@@ -27,7 +32,12 @@ get_srn_genus_results <- function(seed){
 
 }
 
-iterative_run_ml_results <- map(c(1,2,3), get_srn_genus_results)
+library(tictoc)
+tic()
+iterative_run_ml_results <- future_map(1:100, get_srn_genus_results,
+                                       .options = furrr_options(seed=TRUE))
+toc()
+
 
 performance <- iterative_run_ml_results %>%
   map(pluck, "trained_model") %>%
@@ -37,6 +47,11 @@ plot_hp_performance(performance$dat, lambda, AUC)
 
 performance$dat %>%
   group_by(alpha, lambda) %>%
-  summarize(mean_AUC = mean(AUC), .groups="drop") %>%
-#  top_n(n=3, mean_AUC)
-  ggplot(aes(x= lambda, y=mean_AUC, color=as.character(alpha))) + geom_line()
+  summarize(mean_AUC = mean(AUC), 
+            lquartile = quantile(AUC, prob=0.25),
+            uquartile = quantile(AUC, prob=0.75),
+            .groups="drop") %>%
+  top_n(n=3, mean_AUC)
+
+
+plan("sequential")
