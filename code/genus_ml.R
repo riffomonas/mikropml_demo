@@ -20,7 +20,7 @@ get_srn_genus_results <- function(seed){
        method="glmnet",
        outcome_colname = "srn",
        kfold = 5,
-       cv_times = 10,
+       cv_times = 100,
        training_frac = 0.8,
        hyperparameters = test_hp, 
        seed = seed)
