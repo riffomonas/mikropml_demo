@@ -1,4 +1,7 @@
 source("code/genus_process.R")
+library(purrr)
+library(broom)
+library(ggtext)
 
 sig_genera <- composite %>%
   nest(data = -taxonomy) %>%
