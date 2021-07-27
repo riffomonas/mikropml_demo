@@ -4,29 +4,31 @@ source("code/genus_process.R")
 library(mikropml)
 library(tidyverse)
 
-output_file <- commandArgs(trailingOnly = TRUE)
+args <- commandArgs(trailingOnly = TRUE)
+output_file <- args[1]
 seed <- as.numeric(str_replace(output_file, ".*_(\\d*)\\.Rds", "\\1"))
+feature_script <- args[2]
 
-srn_genus_data <- composite %>%
-  select(group, taxonomy, rel_abund, srn) %>%
+source(feature_script)
+
+srn_data <- composite %>%
+  feature_select() %>%
   pivot_wider(names_from=taxonomy, values_from = rel_abund) %>%
   select(-group) %>%
   mutate(srn = if_else(srn, "srn", "healthy")) %>%
   select(srn, everything())
 
-srn_genus_preprocess <- preprocess_data(srn_genus_data,
-                                        outcome_colname = "srn")$dat_transformed
+srn_preprocess <- preprocess_data(srn_data,
+                                  outcome_colname = "srn")$dat_transformed
 
-test_hp <- list(alpha = 0,
-                lambda = c(0.1, 1, 2, 3, 4, 5))
 
-model <- run_ml(srn_genus_preprocess,
-       method="glmnet",
+model <- run_ml(srn_preprocess,
+       method=approach,
        outcome_colname = "srn",
        kfold = 5,
        cv_times = 100,
        training_frac = 0.8,
-       hyperparameters = test_hp,
+       hyperparameters = hyperparameter,
        seed = seed)
 
 saveRDS(model, file=output_file)
