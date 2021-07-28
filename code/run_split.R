@@ -28,6 +28,7 @@ model <- run_ml(srn_preprocess,
        kfold = 5,
        cv_times = 100,
        training_frac = 0.8,
+			 find_feature_importance = TRUE,
        hyperparameters = hyperparameter,
        seed = seed)
 
