@@ -1,4 +1,5 @@
 library(tidyverse)
+library(ggtext)
 
 l2_files <- list.files(path="processed_data",
                        pattern="l2_genus_\\d*.Rds",
@@ -27,11 +28,18 @@ l2_weights %>%
   summarize(median = median(weight),
             l_quartile = quantile(weight, prob=0.25),
             u_quartile = quantile(weight, prob=0.75)) %>%
-  mutate(feature = fct_reorder(feature, median)) %>%
+  mutate(feature = str_replace(feature, "(.*)", "*\\1*"),
+         feature = str_replace(feature, "(.*)_unclassified\\*", "Unclassified \\1*"),
+         feature = str_replace(feature, "_(.*)\\*", "* \\1"),
+         feature = fct_reorder(feature, median)) %>%
   filter(abs(median) > 0.01) %>%
   ggplot(aes(x=median, y=feature, xmin=l_quartile, xmax=u_quartile)) +
+  geom_vline(xintercept=0, color="gray") +
   geom_point() +
-  geom_linerange()
+  geom_linerange() +
+  labs(x="Weights", y=NULL) +
+  theme_classic() +
+  theme(axis.text.y = element_markdown())
   
 ggsave("figures/l2_weights.tiff", width=5, height=5)
 
@@ -55,10 +63,16 @@ l2_feature_importance %>%
   summarize(median = median(perf_metric_diff),
             l_quartile = quantile(perf_metric_diff, prob=0.25),
             u_quartile = quantile(perf_metric_diff, prob=0.75)) %>%
-  mutate(feature = fct_reorder(feature, median)) %>%
+  mutate(feature = str_replace(feature, "(.*)", "*\\1*"),
+         feature = str_replace(feature, "(.*)_unclassified\\*", "Unclassified \\1*"),
+         feature = str_replace(feature, "_(.*)\\*", "* \\1"),
+         feature = fct_reorder(feature, median)) %>%
   filter(median > 0.0025) %>%
   ggplot(aes(x=median, y=feature, xmin=l_quartile, xmax=u_quartile)) +
   geom_point() +
-  geom_linerange()
+  geom_linerange() +
+  labs(x="Change in AUC when removed", y=NULL) +
+  theme_classic() +
+  theme(axis.text.y = element_markdown())
 
 ggsave("figures/l2_feature_importance.tiff", width=5, height=5)
