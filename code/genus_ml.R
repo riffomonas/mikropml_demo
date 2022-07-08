@@ -28,7 +28,8 @@ get_srn_genus_results <- function(seed){
        cv_times = 100,
        training_frac = 0.8,
        hyperparameters = test_hp, 
-       seed = seed)
+       seed = seed,
+       find_feature_importance = TRUE)
 
 }
 
@@ -53,5 +54,14 @@ performance$dat %>%
             .groups="drop") %>%
   top_n(n=3, mean_AUC)
 
+feature_importance <- iterative_run_ml_results %>%
+  map_dfr(pluck, "feature_importance")
+
+feature_importance %>% 
+  ggplot(aes(perf_metric_diff, names)) +
+  geom_boxplot() +
+  labs(x = 'Difference in AUROC', y = '') +
+  theme_bw()
+  
 
 plan("sequential")
